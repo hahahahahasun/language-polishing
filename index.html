@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>人话翻译机</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #1a1714;
+      --ink-light: #4a4540;
+      --ink-muted: #8a8480;
+      --paper: #faf8f4;
+      --paper-warm: #f2ede4;
+      --paper-border: #e0d8cc;
+      --accent: #b5451b;
+      --accent-light: #f0e8e2;
+      --accent-muted: #d4896e;
+      --green: #2d6a4f;
+      --green-light: #e8f4ef;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      font-weight: 300;
+    }
+
+    /* ─── Header ─── */
+    header {
+      border-bottom: 1px solid var(--paper-border);
+      padding: 0 5vw;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      background: var(--paper);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .logo-mark {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+    .logo-mark span { color: var(--accent); }
+    .logo-sub {
+      font-size: 12px;
+      color: var(--ink-muted);
+      font-weight: 300;
+      letter-spacing: 0.05em;
+    }
+
+    .header-badge {
+      font-size: 11px;
+      padding: 4px 10px;
+      border: 1px solid var(--paper-border);
+      border-radius: 20px;
+      color: var(--ink-muted);
+      letter-spacing: 0.05em;
+    }
+
+    /* ─── Hero ─── */
+    .hero {
+      padding: 72px 5vw 56px;
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .hero-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-family: 'Noto Serif SC', serif;
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 600;
+      line-height: 1.25;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+      position: relative;
+    }
+    .hero h1 em::after {
+      content: '';
+      position: absolute;
+      left: 0; bottom: 2px;
+      width: 100%; height: 3px;
+      background: var(--accent);
+      opacity: 0.3;
+      border-radius: 2px;
+    }
+
+    .hero p {
+      font-size: 16px;
+      color: var(--ink-light);
+      line-height: 1.8;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* ─── Main tool area ─── */
+    .tool-wrapper {
+      max-width: 860px;
+      margin: 0 auto 80px;
+      padding: 0 5vw;
+    }
+
+    /* Mode selector */
+    .mode-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .mode-btn {
+      flex: 1;
+      min-width: 100px;
+      padding: 12px 16px;
+      border: 1px solid var(--paper-border);
+      background: var(--paper);
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.18s;
+      font-family: inherit;
+    }
+    .mode-btn:hover {
+      border-color: var(--accent-muted);
+      background: var(--accent-light);
+    }
+    .mode-btn.active {
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+    .mode-btn .mode-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink);
+      display: block;
+      margin-bottom: 2px;
+    }
+    .mode-btn.active .mode-label { color: var(--accent); }
+    .mode-btn .mode-desc {
+      font-size: 11px;
+      color: var(--ink-muted);
+      display: block;
+    }
+
+    /* Text areas */
+    .panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 640px) {
+      .panels { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-label {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .char-count {
+      font-size: 11px;
+      color: var(--ink-muted);
+    }
+    .char-count.warn { color: var(--accent); }
+
+    textarea {
+      flex: 1;
+      min-height: 280px;
+      padding: 16px;
+      border: 1px solid var(--paper-border);
+      border-radius: 10px;
+      background: #fff;
+      font-family: 'Noto Sans SC', sans-serif;
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 1.85;
+      color: var(--ink);
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.18s;
+    }
+    textarea:focus { border-color: var(--accent-muted); }
+    textarea::placeholder { color: var(--ink-muted); }
+    textarea:read-only {
+      background: var(--paper-warm);
+      cursor: default;
+    }
+
+    /* Result state */
+    .result-area {
+      position: relative;
+    }
+    .result-area.loading textarea {
+      color: transparent;
+    }
+    .loading-overlay {
+      display: none;
+      position: absolute;
+      inset: 32px 0 0;
+      border-radius: 10px;
+      background: var(--paper-warm);
+      border: 1px solid var(--paper-border);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .result-area.loading .loading-overlay { display: flex; }
+
+    .spinner {
+      width: 28px; height: 28px;
+      border: 2px solid var(--paper-border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      font-size: 13px;
+      color: var(--ink-muted);
+    }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      padding: 11px 28px;
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 400;
+      cursor: pointer;
+      transition: all 0.18s;
+      letter-spacing: 0.02em;
+    }
+    .btn-primary:hover { background: var(--accent); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled {
+      background: var(--ink-muted);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-ghost {
+      padding: 11px 20px;
+      background: transparent;
+      color: var(--ink-light);
+      border: 1px solid var(--paper-border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .btn-ghost:hover { background: var(--paper-warm); border-color: var(--ink-muted); }
+    .btn-ghost:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .copy-success {
+      font-size: 13px;
+      color: var(--green);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .copy-success.show { opacity: 1; }
+
+    .error-msg {
+      font-size: 13px;
+      color: var(--accent);
+      margin-top: 10px;
+      min-height: 18px;
+    }
+
+    /* ─── How it works ─── */
+    .how {
+      background: var(--paper-warm);
+      border-top: 1px solid var(--paper-border);
+      padding: 60px 5vw;
+    }
+    .how-inner {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .how h2 {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 32px;
+      color: var(--ink);
+    }
+    .how-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+    }
+    .how-card {
+      background: var(--paper);
+      border: 1px solid var(--paper-border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+    .how-num {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 28px;
+      color: var(--accent);
+      opacity: 0.4;
+      font-weight: 600;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .how-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .how-body {
+      font-size: 13px;
+      color: var(--ink-muted);
+      line-height: 1.7;
+    }
+
+    /* ─── Footer ─── */
+    footer {
+      padding: 24px 5vw;
+      border-top: 1px solid var(--paper-border);
+      text-align: center;
+      font-size: 12px;
+      color: var(--ink-muted);
+    }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hero { animation: fadeUp 0.5s ease both; }
+    .tool-wrapper { animation: fadeUp 0.5s 0.1s ease both; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-mark">人话<span>翻译</span>机</span>
+    <span class="logo-sub">AI 降重工具</span>
+  </div>
+  <span class="header-badge">Beta</span>
+</header>
+
+<section class="hero">
+  <p class="hero-eyebrow">写作辅助工具</p>
+  <h1>把 AI 味赶走<br/>留下<em>你自己的声音</em></h1>
+  <p>智能识别并改写 AI 化表达，让文字更自然、更有个性，像真人写的一样。</p>
+</section>
+
+<div class="tool-wrapper">
+
+  <!-- Mode selector (populated by JS from config) -->
+  <div class="mode-row" id="modeRow"></div>
+
+  <div class="panels">
+    <!-- Input -->
+    <div class="panel">
+      <div class="panel-label">
+        <span>原文</span>
+        <span class="char-count" id="charCount">0 / 3000 字</span>
+      </div>
+      <textarea
+        id="inputText"
+        placeholder="把需要改写的段落粘贴在这里…&#10;&#10;建议每次处理 300–500 字，效果更好。"
+        maxlength="3000"
+      ></textarea>
+    </div>
+
+    <!-- Output -->
+    <div class="panel result-area" id="resultArea">
+      <div class="panel-label">
+        <span>改写结果</span>
+      </div>
+      <textarea id="outputText" readonly placeholder="改写结果将显示在这里…"></textarea>
+      <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <span class="loading-text">正在改写中…</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn-primary" id="rewriteBtn" onclick="doRewrite()">开始改写</button>
+    <button class="btn-ghost" id="copyBtn" onclick="copyResult()" disabled>复制结果</button>
+    <button class="btn-ghost" onclick="clearAll()">清空</button>
+    <span class="copy-success" id="copySuccess">✓ 已复制</span>
+  </div>
+  <div class="error-msg" id="errorMsg"></div>
+
+</div>
+
+<!-- How it works -->
+<section class="how">
+  <div class="how-inner">
+    <h2>三步完成改写</h2>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-num">01</div>
+        <div class="how-title">粘贴原文</div>
+        <div class="how-body">将需要处理的段落粘贴进来，建议每次 500 字以内。</div>
+      </div>
+      <div class="how-card">
+        <div class="how-num">02</div>
+        <div class="how-title">选择强度</div>
+        <div class="how-body">微调保留风格，重写替换套话，深改大幅重组结构。</div>
+      </div>
+      <div class="how-card">
+        <div class="how-num">03</div>
+        <div class="how-title">获取结果</div>
+        <div class="how-body">复制改写后的文字，再根据自己的表达习惯微调即可。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer id="footerEl"></footer>
+
+<script type="module">
+  import { MODES, SITE_NAME, SITE_TAGLINE, FOOTER_TEXT } from '/config.js';
+
+  // Populate modes
+  const modeRow = document.getElementById('modeRow');
+  let currentMode = MODES[1]?.id || MODES[0].id;
+
+  MODES.forEach((m, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'mode-btn' + (m.id === currentMode ? ' active' : '');
+    btn.dataset.id = m.id;
+    btn.innerHTML = `<span class="mode-label">${m.label}</span><span class="mode-desc">${m.description}</span>`;
+    btn.onclick = () => {
+      currentMode = m.id;
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+    modeRow.appendChild(btn);
+  });
+
+  // Footer
+  if (FOOTER_TEXT) {
+    document.getElementById('footerEl').textContent = FOOTER_TEXT;
+  }
+
+  // Char counter
+  const inputEl = document.getElementById('inputText');
+  const charCount = document.getElementById('charCount');
+  inputEl.addEventListener('input', () => {
+    const n = inputEl.value.length;
+    charCount.textContent = `${n} / 3000 字`;
+    charCount.className = 'char-count' + (n > 2500 ? ' warn' : '');
+  });
+
+  window.doRewrite = async function() {
+    const text = inputEl.value.trim();
+    const errorEl = document.getElementById('errorMsg');
+    errorEl.textContent = '';
+
+    if (!text) { errorEl.textContent = '请先粘贴需要改写的文字'; return; }
+    if (text.length > 3000) { errorEl.textContent = '文字超过 3000 字，请分段提交'; return; }
+
+    const btn = document.getElementById('rewriteBtn');
+    const resultArea = document.getElementById('resultArea');
+    const outputEl = document.getElementById('outputText');
+    const copyBtn = document.getElementById('copyBtn');
+
+    btn.disabled = true;
+    btn.textContent = '改写中…';
+    resultArea.classList.add('loading');
+    copyBtn.disabled = true;
+    outputEl.value = '';
+
+    try {
+      const res = await fetch('/api/rewrite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, modeId: currentMode })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '请求失败');
+      outputEl.value = data.result;
+      copyBtn.disabled = false;
+    } catch (e) {
+      errorEl.textContent = e.message || '出错了，请稍后重试';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '开始改写';
+      resultArea.classList.remove('loading');
+    }
+  };
+
+  window.copyResult = function() {
+    const text = document.getElementById('outputText').value;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      const el = document.getElementById('copySuccess');
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2000);
+    });
+  };
+
+  window.clearAll = function() {
+    document.getElementById('inputText').value = '';
+    document.getElementById('outputText').value = '';
+    document.getElementById('errorMsg').textContent = '';
+    document.getElementById('charCount').textContent = '0 / 3000 字';
+    document.getElementById('copyBtn').disabled = true;
+  };
+</script>
+</body>
+</html>
